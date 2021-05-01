@@ -1,8 +1,6 @@
 package com.example.job.persistent.message;
 
-import com.alibaba.fastjson.JSON;
 import com.example.job.persistent.config.TopicName;
-import com.example.job.persistent.util.Util;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Duration;
@@ -11,20 +9,16 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Component;
-import scala.Tuple2;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * @description: TODO
@@ -53,21 +47,7 @@ public class SparkKafkaConsumer {
                 LocationStrategies.PreferConsistent(), ConsumerStrategies.Subscribe(List.of(TopicName.CRAWLED_JOB_DESCRIPTION), params));
 
         stream.map(ConsumerRecord::value)
-                .map(JSON::parseObject)
-                .map(json -> json.getJSONObject("jobInfo"))
-                .map(json -> json.getString("description"))
-                .map(htmlText -> Jsoup.clean(htmlText, Whitelist.none()))
-                .flatMap(text -> Stream.of(text.split(" ")).iterator())
-                .filter(word -> !word.isBlank() && word.matches("^[a-zA-Z0-9]*$"))
-                .filter(word -> word.length() > 1)
-                .filter(Util::isNotBoring)
-                .countByValue()
-                .mapToPair(Tuple2::swap)
-                .transformToPair(pair -> pair.sortByKey(false))
-                .foreachRDD(rdd -> rdd.saveAsTextFile("hdfs://localhost:8020/job-info"));
-
-
-//        result.print();
+                .foreachRDD(rdd -> rdd.saveAsTextFile("hdfs://localhost:8020/job-info/dice"));
         streamingContext.start();
         streamingContext.awaitTermination();
     }

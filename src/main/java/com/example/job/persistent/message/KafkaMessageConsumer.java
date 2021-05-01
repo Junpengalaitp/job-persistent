@@ -13,7 +13,7 @@ import java.io.IOException;
  * @description: TODO
  * @author: Junpeng He
  * @date: 2021-04-26 4:07 PM
- */
+// */
 //@Component
 @Slf4j
 public class KafkaMessageConsumer {
@@ -23,7 +23,7 @@ public class KafkaMessageConsumer {
 
     @KafkaListener(topics = {TopicName.CRAWLED_JOB_DESCRIPTION})
     private void onMessage(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException {
-//        log.info("ConsumerRecord: {}", consumerRecord);
-        persistService.getJobInfoString(consumerRecord);
+        log.info("ConsumerRecord: {}", consumerRecord);
+//        persistService.getJobInfoString(consumerRecord);
     }
 }
