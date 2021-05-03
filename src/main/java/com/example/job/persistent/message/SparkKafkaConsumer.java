@@ -11,10 +11,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +22,7 @@ import java.util.Map;
  * @author: Junpeng He
  * @date: 2021-04-29 10:12 AM
  */
-@Component
+//@Component
 public class SparkKafkaConsumer {
     @Value("${spring.kafka.consumer.bootstrap-servers}")
     private String bootstrapServers;
@@ -39,7 +36,7 @@ public class SparkKafkaConsumer {
     @Autowired
     private ConsumerFactory<Object, Object> consumerFactory;
 
-    @EventListener(ApplicationReadyEvent.class)
+//    @EventListener(ApplicationReadyEvent.class)
     public void startSparkKafka() throws InterruptedException {
         Map<String, Object> params = new HashMap<>(consumerFactory.getConfigurationProperties());
         params.put("bootstrap.servers", bootstrapServers);

@@ -1,14 +1,16 @@
 package com.example.job.persistent.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.example.job.persistent.hdfs.HadoopPersistent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-import java.io.FileWriter;
 import java.io.IOException;
+
+import static com.example.job.persistent.config.AmazonS3Config.CRAWLED_JOB_DESCRIPTION_BUCKET;
+import static com.example.job.persistent.config.AmazonS3Config.S3_CLIENT;
 
 /**
  * @description: TODO
@@ -20,33 +22,18 @@ import java.io.IOException;
 public class PersistServiceImpl implements PersistService {
 
     @Override
-    public String getJobInfoString(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException {
+    public boolean putToS3(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException {
+        String key = consumerRecord.key();
         String value = consumerRecord.value();
-        JSONObject jsonObject = JSON.parseObject(value);
-        String jobInfoString = jsonObject.getString("jobInfo");
-        String fileName = "job_info_" + System.currentTimeMillis() + ".txt";
-        String path = "/Users/hejunpeng/alaitp/job-persistent/src/main/resources/job-info/" + fileName;
-        saveAsFileWriter(jobInfoString, path);
-        HadoopPersistent.storeToHdfs(path, fileName);
-        log.info(jobInfoString);
-        return jobInfoString;
+        String jobSite = consumerRecord.key().split("-")[0];
+
+        PutObjectResponse putObjectResponse = S3_CLIENT.putObject(PutObjectRequest.builder()
+                        .bucket(CRAWLED_JOB_DESCRIPTION_BUCKET)
+                        .key(jobSite + "/" + key)
+                        .build(),
+                RequestBody.fromString(value));
+        log.info("put to S3: {}", key);
+        return putObjectResponse.sdkHttpResponse().isSuccessful();
     }
 
-    private static void saveAsFileWriter(String content, String path) {
-
-        FileWriter fwriter = null;
-        try {
-            fwriter = new FileWriter(path);
-            fwriter.write(content);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                fwriter.flush();
-                fwriter.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
 }

@@ -11,5 +11,5 @@ import java.io.IOException;
  */
 public interface PersistService {
 
-    String getJobInfoString(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException;
+    boolean putToS3(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException;
 }

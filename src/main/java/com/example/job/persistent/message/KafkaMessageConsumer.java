@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
  * @author: Junpeng He
  * @date: 2021-04-26 4:07 PM
 // */
-//@Component
+@Component
 @Slf4j
 public class KafkaMessageConsumer {
 
@@ -24,6 +25,6 @@ public class KafkaMessageConsumer {
     @KafkaListener(topics = {TopicName.CRAWLED_JOB_DESCRIPTION})
     private void onMessage(ConsumerRecord<String, String> consumerRecord) throws IOException, InterruptedException {
         log.info("ConsumerRecord: {}", consumerRecord);
-//        persistService.getJobInfoString(consumerRecord);
+        persistService.putToS3(consumerRecord);
     }
 }
